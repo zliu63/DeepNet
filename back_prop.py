@@ -4,7 +4,7 @@ import numpy as np
 num_itr = 1000
 
 # define batch size.
-batchSize = 3.
+batchSize = 3
 
 # define the input data dimension.
 inputSize = 2
