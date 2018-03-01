@@ -54,7 +54,7 @@ class Neural_Network():
         outputs: 
             derivative sigmoid(x) as a function of s 
         '''
-        return d_sigmoid
+        return s*(1-s)
 
 
     def forward(self, X):
@@ -65,6 +65,10 @@ class Neural_Network():
         outputs:
             c: output (batchSize, outputSize)
         '''
+        self.z = self.fully_connected(X, self.U, self.e)
+        self.b = self.sigmoid(self.z)    
+        self.h = self.fully_connected(self.b, self.W, self.f)
+        c = self.sigmoid(self.h)
         return c
 
 
@@ -79,7 +83,8 @@ class Neural_Network():
             d_o: derivative of the L2 loss with respect to the network's 
             output o. (batchSize, outputSize)
         '''
-        return d_o
+        batchSize = o.shape[0]
+        return (o-gt)/batchSize
 
 
     def error_at_layer2(self, d_o, o):
@@ -93,7 +98,7 @@ class Neural_Network():
             delta_k: the derivative of the loss with respect to the output of the second
             fully connected layer (batchSize, outputSize).
         '''
-        return delta_k
+        return d_o*self.sigmoidPrime(o)
 
 
     def error_at_layer1(self, delta_k, W, b):
@@ -108,7 +113,7 @@ class Neural_Network():
             delta_j: the derivative of the loss with respect to the output of the second
             fully connected layer (batchSize, hiddenSize).
         '''
-        return delta_j
+        return np.matmul(delta_k, W.transpose())*self.sigmoidPrime(b)
 
 
     def derivative_of_w(self, b, delta_k):
@@ -121,7 +126,7 @@ class Neural_Network():
         returns:
             d_w: the derivative of loss with respect to W  (hiddenSize ,outputSize).
         '''
-        return d_w
+        return np.matmul(b.transpose(), delta_k)
 
 
     def derivative_of_u(self, X, delta_j):
@@ -134,7 +139,7 @@ class Neural_Network():
         returns:
             d_u: the derivative of loss with respect to U (inputSize, hiddenSize).
         '''
-        return d_u
+        return np.matmul(X.transpose(),delta_j)
 
 
     def derivative_of_e(self, delta_j):
@@ -146,7 +151,7 @@ class Neural_Network():
         returns:
             d_e: the derivative of loss with respect to e (hiddenSize).
         '''
-        return d_e
+        return np.sum(delta_j,0)
 
 
     def derivative_of_f(self, delta_k):
@@ -158,7 +163,7 @@ class Neural_Network():
         returns:
             d_f: the derivative of loss with respect to f (outputSize).
         '''
-        return d_f
+        return np.sum(delta_k,0)
 
 
     def backward(self, X, gt, o):
@@ -173,34 +178,37 @@ class Neural_Network():
 
         # 1. Compute the derivative of the loss with respect to c.
         # Call: d_loss_o
-        
+        d_o = self.d_loss_o(gt,o)
 
         # 2. Compute the error at the second layer (Written section, Part b).
         # Call: error_at_layer2
-        
+        delta_k = self.error_at_layer2(d_o,o)
 
         # 3. Compute the derivative of W (Written section, Part c).
         # Call: derivative_of_w
-        
+        d_w = self.derivative_of_w(self.b, delta_k)
 
         # 4. Compute the derivative of f (Written section, Part d).
         # Call: derivative_of_f
-        
+        d_f = self.derivative_of_f(delta_k)
 
         # 5. Compute the error at the first layer (Written section, Part e).
         # Call: error_at_layer1 
-        
+        delta_j = self.error_at_layer1(delta_k, self.W, self.b)
 
         # 6. Compute the derivative of U (Written section, Part f).
         # Call: derivative_of_u
-        
+        d_u = self.derivative_of_u(X, delta_j)
 
         # 7. Compute the derivative of e (Written section, Part g).
         # Call: derivative_of_e
-           
+        d_e = self.derivative_of_e(delta_j)
 
         # 8. Update the parameters
-        
+        self.W -=  d_w
+        self.U -=  d_u
+        self.e -=  d_e
+        self.f -=  d_f
         
 
     def train (self, X, y):
