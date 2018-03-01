@@ -219,10 +219,10 @@ class Neural_Network():
 def main():
     """ Main function """
     # generate random input data of dimension (batchSize, inputSize). 
-    a = np.random.randint(0, high=10, size=[3,2], dtype='l')
+    a = np.random.randint(0, high=10, size=[batchSize,inputSize], dtype='l')
 
     # generate random ground truth.
-    t = np.random.randint(0, high=100, size=[3,1], dtype='l')
+    t = np.random.randint(0, high=100, size=[batchSize,outputSize], dtype='l')
 
     # scale the input and output data.
     a = a/np.amax(a, axis=0) 
